@@ -2,7 +2,8 @@
 
 Herramienta local minimalista (en Light Mode) para generar copias limpias de archivos de audio con metadata estructurada, portadas estandarizadas y verificación automática.
 
-![Meta Studio](docs/Screenshot 2026-11-25 at 4.38.50 p.m.)
+<img width="1920" height="1080" alt="Screenshot 2026-11-25 at 4 38 50 p m" src="https://github.com/user-attachments/assets/c1e7f2e8-576c-4af3-bb77-faf2684731ee" />
+
 
 ## Qué hace Meta Studio
 
