@@ -1,0 +1,45 @@
+[project]
+name = "meta-studio"
+version = "1.0.0"
+description = "Herramienta web local minimalista para generar copias de archivos de audio con metadata estructurada, limpia y auto-verificada."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.12"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: End Users/Desktop",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Sound/Audio",
+]
+dependencies = [
+    "fastapi>=0.165.0",
+    "imageio-ffmpeg>=0.8.1",
+    "mutagen>=1.48.1",
+    "pillow>=13.0.0",
+    "pydantic>=2",
+    "python-multipart>=0.0.34",
+    "pywebview>=6.2.1",
+    "uvicorn>=0.54.0",
+]
+
+[project.scripts]
+meta-studio = "meta_studio:main"
+meta-studio-desktop = "meta_studio.desktop:main"
+
+[build-system]
+requires = ["uv_build>=0.13.7,<0.14.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pyinstaller>=6.22.3",
+    "pytest>=9.2.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

@@ -1,0 +1,24 @@
+{
+  "profiles": [
+    {
+      "id": "independent-artist",
+      "name": "Independent Artist",
+      "artist": "Artist Name",
+      "album_artist": "Artist Name",
+      "label": "Independent",
+      "copyright": "℗ {year} Artist Name",
+      "release_type": "album",
+      "catalog_prefix": ""
+    },
+    {
+      "id": "demo-wip",
+      "name": "Demo / WIP",
+      "artist": "Artist Name",
+      "album_artist": "Artist Name",
+      "label": "",
+      "copyright": "",
+      "release_type": "demo",
+      "catalog_prefix": ""
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+from meta_studio.core.converter import (
+    FALLBACK_FFMPEG_PATHS,
+    ConversionError,
+    build_ffmpeg_command,
+    cancel_active_conversions,
+    convert_wav,
+    has_active_conversions,
+    is_ffmpeg_available,
+    reset_cancellation,
+    resolve_ffmpeg_binary,
+)
+from meta_studio.core.cover import (
+    MAX_COVER_DIMENSION,
+    get_jpeg_dimensions,
+    process_cover,
+    save_cover_atomic,
+)
+from meta_studio.core.fs import (
+    DEFAULT_FILE_MODE,
+    cleanup_orphan_temps,
+    finalize_temp_file,
+    fsync_file,
+)
+from meta_studio.core.models import (
+    DistributionInfo,
+    ReleaseInput,
+    ReleaseProcessResult,
+    ReleaseStatus,
+    SupportedFormat,
+    TrackInput,
+    TrackMetadata,
+    TrackProcessResult,
+    VerificationMismatch,
+    VerificationResult,
+    WavConversionMode,
+)
+from meta_studio.core.pipeline import (
+    cleanup_tracked_orphan_temps,
+    has_active_releases,
+    process_release,
+)
+from meta_studio.core.sanitizer import (
+    build_album_dir,
+    build_track_filename,
+    sanitize_name,
+)
+from meta_studio.core.tagger import (
+    TaggingError,
+    detect_audio_format,
+    resolve_target_format,
+    write_tagged_copy,
+)
+from meta_studio.core.verifier import (
+    VerificationError,
+    read_audio_duration,
+    verify_audio_file,
+)
+
+__all__ = [
+    "ConversionError",
+    "DEFAULT_FILE_MODE",
+    "DistributionInfo",
+    "FALLBACK_FFMPEG_PATHS",
+    "MAX_COVER_DIMENSION",
+    "ReleaseInput",
+    "ReleaseProcessResult",
+    "ReleaseStatus",
+    "SupportedFormat",
+    "TaggingError",
+    "TrackInput",
+    "TrackMetadata",
+    "TrackProcessResult",
+    "VerificationError",
+    "VerificationMismatch",
+    "VerificationResult",
+    "WavConversionMode",
+    "build_album_dir",
+    "build_ffmpeg_command",
+    "build_track_filename",
+    "cancel_active_conversions",
+    "cleanup_orphan_temps",
+    "cleanup_tracked_orphan_temps",
+    "convert_wav",
+    "detect_audio_format",
+    "finalize_temp_file",
+    "fsync_file",
+    "get_jpeg_dimensions",
+    "has_active_conversions",
+    "has_active_releases",
+    "is_ffmpeg_available",
+    "process_cover",
+    "process_release",
+    "read_audio_duration",
+    "reset_cancellation",
+    "resolve_ffmpeg_binary",
+    "resolve_target_format",
+    "sanitize_name",
+    "save_cover_atomic",
+    "verify_audio_file",
+    "write_tagged_copy",
+]

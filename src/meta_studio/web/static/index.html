@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meta Studio</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-dot" aria-hidden="true"></span>
+      <h1>Meta Studio</h1>
+      <span class="brand-tagline">Copias limpias y verificadas</span>
+    </div>
+    <div class="topbar-status">
+      <span class="pill pill-neutral" title="Tus archivos originales nunca se modifican">Solo copias</span>
+      <span id="ffmpeg-badge" class="pill pill-neutral">Comprobando audio…</span>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <!-- COLUMNA IZQUIERDA: ÁLBUM -->
+    <section class="panel panel-album" aria-label="Información del álbum">
+      <div class="panel-header">
+        <h2>Álbum</h2>
+        <button type="button" id="btn-save-profile" class="btn btn-ghost btn-sm" title="Guardar los campos actuales como perfil reutilizable">
+          + Guardar perfil
+        </button>
+      </div>
+
+      <!-- Perfiles en 1 clic -->
+      <div class="field-group">
+        <label class="field-label">Perfil rápido</label>
+        <div id="profiles-bar" class="profiles-bar" role="group" aria-label="Perfiles guardados"></div>
+      </div>
+
+      <!-- Portada + Campos principales -->
+      <div class="album-hero">
+        <div id="cover-dropzone" class="cover-dropzone" tabindex="0" role="button" aria-label="Arrastra o elige una portada">
+          <input id="cover-input" type="file" accept="image/jpeg,image/png,image/webp" hidden />
+          <img id="cover-preview" class="cover-preview hidden" alt="Vista previa de portada" />
+          <div id="cover-placeholder" class="cover-placeholder">
+            <span class="cover-icon" aria-hidden="true">◻</span>
+            <span class="cover-title">Portada</span>
+            <span class="cover-hint">Arrastra o haz clic</span>
+          </div>
+          <button type="button" id="btn-remove-cover" class="cover-remove hidden" title="Quitar portada" aria-label="Quitar portada">×</button>
+        </div>
+        <div class="album-hero-fields">
+          <div class="field">
+            <label for="album-title">Título del álbum <span class="req">*</span></label>
+            <input id="album-title" type="text" placeholder="Ej. Glass &amp; Tape" autocomplete="off" />
+          </div>
+          <div class="field-row-2">
+            <div class="field">
+              <label for="album-artist">Artista del álbum <span class="req">*</span></label>
+              <input id="album-artist" type="text" placeholder="Ej. Artist Name" autocomplete="off" />
+            </div>
+            <div class="field">
+              <label for="release-artist">Artista principal <span class="req">*</span></label>
+              <input id="release-artist" type="text" placeholder="Igual que artista del álbum" autocomplete="off" />
+            </div>
+          </div>
+          <p id="cover-meta" class="micro-note">Sin portada seleccionada (se guardará cover.jpg ≤ 1400 px al elegir una).</p>
+        </div>
+      </div>
+
+      <!-- Fecha, tipo y estado -->
+      <div class="field-row-date">
+        <div class="field">
+          <label for="release-date">Fecha <span class="req">*</span></label>
+          <div class="input-with-btn">
+            <input id="release-date" type="text" placeholder="YYYY-MM-DD" maxlength="10" autocomplete="off" />
+            <button type="button" id="btn-today" class="btn btn-secondary btn-sm">Hoy</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="original-date">Fecha original</label>
+          <input id="original-date" type="text" placeholder="Igual que fecha" maxlength="10" autocomplete="off" />
+        </div>
+      </div>
+
+      <div class="field-row-2">
+        <div class="field">
+          <label for="release-type">Tipo de lanzamiento <span class="req">*</span></label>
+          <select id="release-type">
+            <option value="album">Album</option>
+            <option value="ep">EP</option>
+            <option value="single">Single</option>
+            <option value="demo">Demo</option>
+            <option value="compilation">Compilation</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="release-status">Estado</label>
+          <select id="release-status">
+            <option value="Final">Final</option>
+            <option value="Demo">Demo</option>
+            <option value="WIP">WIP</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Sello, catálogo y copyright (opcionales) -->
+      <div class="field-row-3">
+        <div class="field">
+          <label for="release-label">Sello</label>
+          <input id="release-label" type="text" placeholder="Opcional" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="catalog-number">Catálogo</label>
+          <input id="catalog-number" type="text" placeholder="Ej. CAT-001" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="release-copyright">Copyright</label>
+          <input id="release-copyright" type="text" placeholder="Ej. ℗ 2026 …" autocomplete="off" />
+        </div>
+      </div>
+
+      <!-- Géneros (chips clicables + añadir rápido) -->
+      <div class="field-group">
+        <div class="field-label-row">
+          <label class="field-label">Géneros <span class="req">*</span></label>
+          <span id="selected-genres-count" class="micro-note">0 seleccionados</span>
+        </div>
+        <div id="genre-chips" class="genre-chips" role="group" aria-label="Géneros disponibles"></div>
+        <div class="input-with-btn genre-add-row">
+          <input id="new-genre-input" type="text" placeholder="Añadir nuevo género y presionar Enter…" autocomplete="off" />
+          <button type="button" id="btn-add-genre" class="btn btn-secondary btn-sm">Añadir</button>
+        </div>
+      </div>
+
+      <!-- Formato de salida + Carpeta destino -->
+      <div class="field-group">
+        <label class="field-label">Formato de salida (al cargar WAV)</label>
+        <div class="segmented" role="radiogroup" aria-label="Formato de salida">
+          <label class="seg-option">
+            <input type="radio" name="wav-conversion" value="flac" checked />
+            <span>FLAC <small>recomendado</small></span>
+          </label>
+          <label class="seg-option">
+            <input type="radio" name="wav-conversion" value="mp3_320" />
+            <span>MP3 320k</span>
+          </label>
+          <label class="seg-option">
+            <input type="radio" name="wav-conversion" value="keep" />
+            <span>Mantener original</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="output-dir">Carpeta de salida <span class="req">*</span></label>
+        <div class="input-with-btn">
+          <input id="output-dir" type="text" placeholder="~/.../Meta Studio Exports" autocomplete="off" />
+          <button type="button" id="btn-pick-folder" class="btn btn-secondary btn-sm">Elegir…</button>
+        </div>
+      </div>
+
+      <!-- Bloque colapsable opcional: Distribución y créditos -->
+      <details id="distribution-accordion" class="accordion">
+        <summary class="accordion-summary">
+          <span>Opcional: Distribución y créditos</span>
+          <span class="accordion-hint">Bandcamp / DistroKid / ISRC</span>
+        </summary>
+        <div class="accordion-body">
+          <div class="field-row-2">
+            <div class="field">
+              <label for="dist-primary-genre">Género primario</label>
+              <select id="dist-primary-genre">
+                <option value="">— Sin definir —</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="dist-secondary-genre">Género secundario</label>
+              <select id="dist-secondary-genre">
+                <option value="">— Sin definir —</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-row-2">
+            <div class="field">
+              <label for="dist-language">Idioma</label>
+              <input id="dist-language" type="text" placeholder="Ej. Instrumental, Español, English" autocomplete="off" />
+            </div>
+            <div class="field">
+              <label for="dist-upc">UPC</label>
+              <input id="dist-upc" type="text" placeholder="Opcional" autocomplete="off" />
+            </div>
+          </div>
+          <div class="checkbox-row">
+            <label class="check-label">
+              <input id="dist-instrumental" type="checkbox" />
+              <span>Instrumental</span>
+            </label>
+            <label class="check-label">
+              <input id="dist-explicit" type="checkbox" />
+              <span>Contenido explícito</span>
+            </label>
+          </div>
+          <div class="field">
+            <label for="dist-credits">Créditos y notas</label>
+            <textarea id="dist-credits" rows="3" placeholder="Producción, mezcla, master, agradecimientos…"></textarea>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- COLUMNA DERECHA: CANCIONES + PREVIEW + VERIFICACIÓN -->
+    <section class="panel panel-tracks" aria-label="Canciones y verificación">
+      <div class="panel-header">
+        <div class="panel-header-left">
+          <h2>Canciones</h2>
+          <span id="tracks-count" class="pill pill-neutral">0 pistas</span>
+        </div>
+        <div class="panel-actions">
+          <button type="button" id="btn-clean-all" class="btn btn-ghost btn-sm" disabled>Limpiar nombres</button>
+          <button type="button" id="btn-clear-tracks" class="btn btn-ghost btn-sm" disabled>Vaciar lista</button>
+        </div>
+      </div>
+
+      <!-- Zona drag & drop de audio -->
+      <div id="audio-dropzone" class="audio-dropzone" tabindex="0" role="button" aria-label="Arrastra o elige archivos de audio">
+        <input id="audio-input" type="file" accept=".wav,.flac,.mp3,audio/wav,audio/flac,audio/mpeg" multiple hidden />
+        <div class="audio-dropzone-content">
+          <strong>Suelta aquí tus archivos WAV, FLAC o MP3</strong>
+          <span>o haz clic para seleccionarlos · Los nombres se limpian respetando tus mayúsculas</span>
+        </div>
+      </div>
+
+      <!-- Tabla editable de canciones con drag & drop de filas -->
+      <div id="tracks-table-wrap" class="tracks-table-wrap hidden">
+        <table class="tracks-table">
+          <thead>
+            <tr>
+              <th class="col-drag" aria-label="Ordenar"></th>
+              <th class="col-num">#</th>
+              <th class="col-disc">Disco</th>
+              <th class="col-title">Título</th>
+              <th class="col-artist">Artista</th>
+              <th class="col-isrc isrc-col hidden">ISRC</th>
+              <th class="col-fmt">Origen</th>
+              <th class="col-del" aria-label="Quitar"></th>
+            </tr>
+          </thead>
+          <tbody id="tracks-tbody"></tbody>
+        </table>
+        <p class="micro-note drag-tip">Arrastra el icono ⋮⋮ para reordenar pistas y recalcular automáticamente su numeración.</p>
+      </div>
+
+      <!-- Vista previa en vivo de carpeta y archivos finales -->
+      <div class="preview-card" aria-label="Vista previa de exportación">
+        <div class="preview-header">
+          <h3>Vista previa de salida</h3>
+          <span class="micro-note">Nombres sanitizados para macOS y Linux</span>
+        </div>
+        <div id="preview-folder" class="preview-folder">Completa los datos del álbum para ver la ruta destino…</div>
+        <ul id="preview-files" class="preview-files"></ul>
+      </div>
+
+      <!-- Reporte de verificación al terminar -->
+      <div id="verification-card" class="verification-card hidden" aria-live="polite">
+        <div class="verification-header">
+          <div class="verification-title-group">
+            <span id="verification-badge" class="badge-pass">✓ Verificado</span>
+            <h3 id="verification-heading">Todas las copias verificadas</h3>
+          </div>
+          <button type="button" id="btn-open-finder-card" class="btn btn-secondary btn-sm">
+            Abrir carpeta en Finder
+          </button>
+        </div>
+        <div id="verification-path" class="verification-path"></div>
+        <ul id="verification-list" class="verification-list"></ul>
+      </div>
+    </section>
+  </main>
+
+  <!-- BARRA INFERIOR FIJA -->
+  <footer class="bottom-bar">
+    <div class="bottom-left">
+      <input id="import-info-input" type="file" accept=".json,.md" hidden />
+      <button type="button" id="btn-import-info" class="btn btn-secondary">
+        Importar release-info
+      </button>
+    </div>
+
+    <div id="status-message" class="status-message" role="status" aria-live="polite"></div>
+
+    <div class="bottom-right">
+      <button type="button" id="btn-open-finder-bar" class="btn btn-secondary hidden">
+        Abrir carpeta en Finder
+      </button>
+      <button type="button" id="btn-process" class="btn btn-primary">
+        Crear copias y verificar
+      </button>
+    </div>
+  </footer>
+
+  <!-- Modal ligero para guardar perfil -->
+  <dialog id="profile-dialog" class="modal">
+    <form id="profile-form" method="dialog" class="modal-card">
+      <h3>Guardar perfil actual</h3>
+      <p class="micro-note">Se guardará en <code>presets/profiles.json</code> usando el artista, sello, copyright y tipo actuales.</p>
+      <div class="field">
+        <label for="new-profile-name">Nombre del perfil</label>
+        <input id="new-profile-name" type="text" placeholder="Ej. Mi Proyecto (Sello)" required />
+      </div>
+      <div class="field">
+        <label for="new-profile-catalog-prefix">Prefijo de catálogo (opcional)</label>
+        <input id="new-profile-catalog-prefix" type="text" placeholder="Ej. CAT-" />
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="btn-cancel-profile" class="btn btn-ghost">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar perfil</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="/static/app.js" defer></script>
+</body>
+</html>

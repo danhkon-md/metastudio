@@ -1,0 +1,127 @@
+name: CI & Release
+
+on:
+  push:
+    branches: [main, master]
+    tags: ["v*.*.*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, windows-latest, ubuntu-latest]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Sync dependencies
+        run: uv sync --frozen
+
+      - name: Run pytest
+        run: uv run pytest -v
+
+  build:
+    name: Build (${{ matrix.os }})
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            artifact_name: Meta-Studio-macOS-arm64
+          - os: windows-latest
+            artifact_name: Meta-Studio-Windows-x64
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Sync dependencies
+        run: uv sync --frozen
+
+      - name: Build packaged app
+        shell: bash
+        run: uv run python scripts/build_app.py --version "${GITHUB_REF_NAME}"
+
+      - name: Cold smoke test (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/smoke_home"
+          output="$(env -i HOME="$RUNNER_TEMP/smoke_home" PATH=/usr/bin:/bin \
+            "./dist/Meta Studio.app/Contents/MacOS/Meta Studio" --check)"
+          echo "$output"
+          ffmpeg_line="$(echo "$output" | grep -E '^\s*-\s*ffmpeg:')"
+          if [[ "$ffmpeg_line" != *"Meta Studio.app"* ]] || [[ "$ffmpeg_line" != *"imageio_ffmpeg"* ]]; then
+            echo "ERROR: ffmpeg no se resolvió desde el bundle compilado: $ffmpeg_line" >&2
+            exit 1
+          fi
+
+      - name: Cold smoke test (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $env:APPDATA = Join-Path $env:RUNNER_TEMP "smoke_appdata"
+          New-Item -ItemType Directory -Force -Path $env:APPDATA | Out-Null
+          $outFile = Join-Path $env:RUNNER_TEMP "smoke_out.txt"
+          $proc = Start-Process -FilePath ".\dist\Meta Studio\Meta Studio.exe" `
+            -ArgumentList "--check" -Wait -PassThru -NoNewWindow -RedirectStandardOutput $outFile
+          $output = Get-Content -Path $outFile -Raw
+          Write-Output $output
+          if ($proc.ExitCode -ne 0) {
+            throw "Meta Studio.exe --check failed with exit code $($proc.ExitCode)"
+          }
+          if ($output -notmatch "ffmpeg:.*imageio_ffmpeg") {
+            throw "ERROR: ffmpeg no se resolvió desde el bundle compilado:`n$output"
+          }
+
+      - name: Upload release zip artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: dist/Meta-Studio-*.zip
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Download built artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: release-assets/*.zip
